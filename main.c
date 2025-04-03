@@ -7,9 +7,6 @@
 
 typedef struct Board {
     char _Board[LINES][COLS];
-
-    void (*printBoard)(struct Board *table);
-    void (*cleanBoard)(struct Board *table); 
 } Board;
 
 typedef struct Player {
@@ -25,13 +22,17 @@ typedef struct Position {
 
 typedef struct Match {
     Player Player1, Player2;
-    Board board;
-    int Round, Wins, Ties, Loss;
-    bool isFinished;
+    Board Board;
+    Position Pos;
 
-    void (*insertPiece)(struct Board *board, struct Player *player, struct Position pos);
+    unsigned short int Round, Wins, Ties, Loss;
+    bool isPlayer1Turn;
+    bool isPlayer2Turn;
+    bool roundIsFinished;
+
 } Match;
 
+void getData(Player *player1, Player *player2); 
 void printBoard(Board *board);
 void cleanBoard(Board *board); 
 void insertPiece(Board *board, Player *player, Position pos);
@@ -53,30 +54,6 @@ bool checkIfSomeoneWon(Table *table) {
     }
 }
 */
-void getData(Player *player1, Player *player2) {
-    printf("Choose the players names.\n");
-    printf("Player 1 name: ");
-    scanf("%s", player1->Name);
-    printf("\n");
-
-    printf("Player 2 name: ");
-    scanf("%s", player2->Name);
-    printf('\n');
-
-    printf("Choose the pieces to play.\n");
-    printf("1 for 'X'\n2 for 'O': ");
-    printf("Player 1 piece: ");
-    short int option;
-    if (option == 1) {
-        player1->Piece = 'X';
-        player2->Piece = 'O';
-    } else {
-        player1->Piece = 'O';
-        player2->Piece = 'X';
-    }
-    printf('\n');
-
-}
 
 void insertPiece(Board *board, Player *player, Position pos) {
     if ( (pos.X < 1 && pos.X > LINES) || (pos.Y < 1 && pos.Y > COLS) ) {
@@ -120,4 +97,28 @@ void printTable(Board *board) {
     printf("|----------------------------|\n");
     printf("|----- TIC-TAC-TOE GAME -----|\n");
     printf("|----------------------------|\n\n");
+}
+
+void getData(Player *player1, Player *player2) {
+    printf("Choose the players names.\n");
+    printf("Player 1 name: ");
+    scanf("%s", player1->Name);
+    printf("\n");
+
+    printf("Player 2 name: ");
+    scanf("%s", player2->Name);
+    printf('\n');
+
+    printf("Choose the pieces to play.\n");
+    printf("1 for 'X'\n2 for 'O': ");
+    printf("Player 1 piece: ");
+    unsigned short int option;
+    if (option == 1) {
+        player1->Piece = 'X';
+        player2->Piece = 'O';
+    } else {
+        player1->Piece = 'O';
+        player2->Piece = 'X';
+    }
+    printf('\n');
 }
