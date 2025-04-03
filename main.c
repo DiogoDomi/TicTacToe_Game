@@ -54,18 +54,27 @@ bool checkIfSomeoneWon(Table *table) {
 }
 */
 void getData(Player *player1, Player *player2) {
+    printf("Choose the players names.\n");
     printf("Player 1 name: ");
     scanf("%s", player1->Name);
     printf("\n");
 
     printf("Player 2 name: ");
     scanf("%s", player2->Name);
-    printf("\n");
+    printf('\n');
 
-    printf("Sort the pieces or you wanna choose?\n");
-    printf("S for Sort\nC for Choose: ");
-    char option;
-    scanf("%c", &option);
+    printf("Choose the pieces to play.\n");
+    printf("1 for 'X'\n2 for 'O': ");
+    printf("Player 1 piece: ");
+    short int option;
+    if (option == 1) {
+        player1->Piece = 'X';
+        player2->Piece = 'O';
+    } else {
+        player1->Piece = 'O';
+        player2->Piece = 'X';
+    }
+    printf('\n');
 
 }
 
