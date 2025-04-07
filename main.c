@@ -79,7 +79,7 @@ int main() {
         .EndGame = false
     };
 
-    struct Player winner;
+    struct Player winner = {"", ' ', 0, 0};
 
     getData(&game.Player1, &game.Player2);
     initRound(&game);
@@ -109,7 +109,7 @@ int main() {
 
 struct Player checkIfSomeoneWon(struct Game *game) {
 
-    struct Player Player;
+    struct Player Player = {"", ' ', 0, 0};
 
     uint8_t winningSequences[8][3][2] = {
         { {0, 0}, {0, 1}, {0, 2} },
