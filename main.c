@@ -6,7 +6,7 @@
 #include <string.h>
 
 struct Board {
-    char _Board[3][3];
+    char Board[3][3];
 };
 
 struct Player {
@@ -50,9 +50,16 @@ struct Player checkIfSomeoneWon(struct Game *game);
 
 int main() {
     
-    struct Board board;
-    struct Player player1, player2;
-    struct Position pos;
+    struct Board board = {
+        {
+            {' ', ' ', ' '} ,
+            {' ', ' ', ' '} ,
+            {' ', ' ', ' '} 
+        }
+    };
+    struct Player player1 = {"", ' ', 0, 0}; 
+    struct Player player2 = {"", ' ', 0, 0};
+    struct Position pos = {0, 0};
 
     struct Game game = {
         .Board = board,
@@ -72,15 +79,30 @@ int main() {
         .EndGame = false
     };
 
-    /*
+    struct Player winner;
+
     getData(&game.Player1, &game.Player2);
     initRound(&game);
 
-    while (!game.endGame) {
-        insertPiece(&game);
-        printBoard(game.Board);
+    while (!game.EndGame) {
 
-    };*/
+        while (game.Moves <= game.MAX_MOVES && game.SomeoneWon == false) {
+
+            printBoard(game.Board);
+            insertPiece(&game);
+
+            winner = checkIfSomeoneWon(&game);
+
+            if (game.SomeoneWon) {
+
+            }
+
+
+
+
+        }
+
+    };
 
     return 0;
 }
@@ -114,7 +136,7 @@ struct Player checkIfSomeoneWon(struct Game *game) {
         for (uint8_t position = 0; position < sequencePositions; position++) {
             posX = winningSequences[winningsequence][position][0];
             posY = winningSequences[winningsequence][position][1];
-            if (game->Board._Board[posX][posY] == game->Player1.Piece) {
+            if (game->Board.Board[posX][posY] == game->Player1.Piece) {
                 player1CountPieces++;
             } else {
                 player2CountPieces++;
@@ -151,17 +173,17 @@ void insertPiece(struct Game *game) {
         printf("Position not allowed. Try again.\n");
         return;
     }
-    if (game->Board._Board[game->Position.X - 1][game->Position.Y - 1] != ' ') {
+    if (game->Board.Board[game->Position.X - 1][game->Position.Y - 1] != ' ') {
         printf("This Position already has a piece. Choose another place.\n");
         return;
     }
 
     if (game->IsPlayer1Turn) {
-        game->Board._Board[game->Position.X - 1][game->Position.Y - 1] = game->Player1.Piece;
+        game->Board.Board[game->Position.X - 1][game->Position.Y - 1] = game->Player1.Piece;
         game->IsPlayer1Turn = false;
         game->IsPlayer2Turn = true;
     } else {
-        game->Board._Board[game->Position.X - 1][game->Position.Y - 1] = game->Player2.Piece;
+        game->Board.Board[game->Position.X - 1][game->Position.Y - 1] = game->Player2.Piece;
         game->IsPlayer1Turn = true;
         game->IsPlayer2Turn = false;
     }
@@ -175,8 +197,6 @@ void initRound(struct Game *game) {
     
     printf("Loading game...\n");
     sleep(5);
-
-    printBoard(game->Board);
 
     game->Round++;
 }
@@ -211,7 +231,7 @@ void getData(struct Player *player1, struct Player *player2) {
 void cleanBoard(struct Board *board) {
     for (uint8_t i = 0; i < 3; i++) {
         for (uint8_t j = 0; j < 3; j++) {
-            board->_Board[i][j] = ' ';
+            board->Board[i][j] = ' ';
         }
     }
 }
@@ -229,9 +249,9 @@ void printBoard(struct Board board) {
         printf("|         ");
         for (int8_t j=0; j<3; j++) {
             if (j == 3 - 1) {
-                printf(" %c", board._Board[i][j]);
+                printf(" %c", board.Board[i][j]);
             } else{
-                printf(" %c |", board._Board[i][j]);
+                printf(" %c |", board.Board[i][j]);
             }
         }
         printf("         |\n");
