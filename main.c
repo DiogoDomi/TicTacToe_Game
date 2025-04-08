@@ -10,7 +10,8 @@ struct Board {
 };
 
 struct Player {
-    char Name[15];
+    uint8_t ID;
+    char Name[20];
     char Piece;
     uint8_t Wins;
     uint8_t Loss;
@@ -36,17 +37,16 @@ struct Game {
     bool IsPlayer1Turn;
     bool IsPlayer2Turn;
     bool SomeoneWon;
-    bool EndRound;
     bool EndGame;
-
 };
 
-void printBoard(struct Board board);
+void printBoard(struct Game game);
 void cleanBoard(struct Board *board); 
 void getData(struct Player *player1, struct Player *player2); 
 void initRound(struct Game *game);
 void insertPiece(struct Game *game);
 struct Player checkIfSomeoneWon(struct Game *game); 
+void printAndUpdateResult(struct Game *game, struct Player winner);
 
 int main() {
     
@@ -57,8 +57,8 @@ int main() {
             {' ', ' ', ' '} 
         }
     };
-    struct Player player1 = {"", ' ', 0, 0}; 
-    struct Player player2 = {"", ' ', 0, 0};
+    struct Player player1 = {1, "", ' ', 0, 0}; 
+    struct Player player2 = {2, "", ' ', 0, 0};
     struct Position pos = {0, 0};
 
     struct Game game = {
@@ -75,48 +75,65 @@ int main() {
         .IsPlayer1Turn = true,
         .IsPlayer2Turn = false,
         .SomeoneWon = false,
-        .EndRound = false,
         .EndGame = false
     };
 
-    struct Player winner = {"", ' ', 0, 0};
-
     getData(&game.Player1, &game.Player2);
-    initRound(&game);
 
     while (!game.EndGame) {
 
-        while (game.Moves <= game.MAX_MOVES && game.SomeoneWon == false) {
+        struct Player winner = {0, "", ' ', 0, 0};
 
-            printBoard(game.Board);
+        initRound(&game);
+
+        while (game.Moves < game.MAX_MOVES && !game.SomeoneWon) {
+            printBoard(game);
             insertPiece(&game);
-
             winner = checkIfSomeoneWon(&game);
-
-            if (game.SomeoneWon) {
-
-            }
-
-
-
-
         }
 
-    };
+        printAndUpdateResult(&game, winner);
+
+        char choice;
+        printf("\nWanna play another round? (y/n): ");
+        scanf(" %c", &choice);
+        if (choice == 'n') {
+            game.EndGame = true;
+            printf("\nThanks for playing!\nQuitting game...");
+            sleep(3);
+        }
+    }
 
     return 0;
 }
 
+void printAndUpdateResult(struct Game *game, struct Player winner) {
+    switch (winner.ID) {
+        case 0:
+            printf("\nRound %d ended in a tie!\n", game->Round);
+            game->Ties++;
+            break;
+        case 1:
+            printf("\n%s won Round %d!", winner.Name, game->Round);
+            game->Player1.Wins++;
+            break;
+        case 2:
+            printf("\n%s won Round %d!", winner.Name, game->Round);
+            game->Player2.Wins++;
+            break;
+    }            
+}
+
 struct Player checkIfSomeoneWon(struct Game *game) {
 
-    struct Player Player = {"", ' ', 0, 0};
+    struct Player Player = {0, "", ' ', 0, 0};
 
     uint8_t winningSequences[8][3][2] = {
         { {0, 0}, {0, 1}, {0, 2} },
         { {1, 0}, {1, 1}, {1, 2} },
         { {2, 0}, {2, 1}, {2, 2} },
         { {0, 0}, {1, 0}, {2, 0} },
-        { {0, 1}, {1, 1}, {1, 2} },
+        { {0, 1}, {1, 1}, {2, 1} },
         { {0, 2}, {1, 2}, {2, 2} },
         { {0, 0}, {1, 1}, {2, 2} },
         { {0, 2}, {1, 1}, {2, 0} }
@@ -125,34 +142,28 @@ struct Player checkIfSomeoneWon(struct Game *game) {
     uint8_t winningSequencesNum = 8;
     uint8_t sequencePositions = 3;
 
-    uint8_t player1CountPieces;
-    uint8_t player2CountPieces;
-
-    uint8_t posX, posY;
 
     for (uint8_t winningsequence = 0; winningsequence < winningSequencesNum; winningsequence++) {
-        player1CountPieces = 0;
-        player2CountPieces = 0;
+        uint8_t player1Count = 0, player2Count= 0;
+
         for (uint8_t position = 0; position < sequencePositions; position++) {
-            posX = winningSequences[winningsequence][position][0];
-            posY = winningSequences[winningsequence][position][1];
-            if (game->Board.Board[posX][posY] == game->Player1.Piece) {
-                player1CountPieces++;
-            } else {
-                player2CountPieces++;
+            uint8_t posX = winningSequences[winningsequence][position][0];
+            uint8_t posY = winningSequences[winningsequence][position][1];
+
+            char piece = game->Board.Board[posX][posY];
+
+            if (piece == game->Player1.Piece) {
+                player1Count++;
+            } else if (piece == game->Player2.Piece) {
+                player2Count++;
             }
         }
-        if (player1CountPieces == 3) {
-            game->Player1.Wins++;
-            game->Wins++;
+        if (player1Count == 3) {
             game->SomeoneWon = true;
-            Player = game->Player1;
-        }
-        if (player2CountPieces == 3) {
-            game->Player2.Wins++;
-            game->Wins++;
+            return game->Player1;
+        } else if (player2Count == 3) {
             game->SomeoneWon = true;
-            Player = game->Player2;
+            return game->Player2;
         }
     }
 
@@ -161,15 +172,15 @@ struct Player checkIfSomeoneWon(struct Game *game) {
 
 void insertPiece(struct Game *game) {
     if (game->IsPlayer1Turn) {
-        printf("Your turn, Player 1.\n");
+        printf("Your turn, Player 1. -> %c\n", game->Player1.Piece);
     } else {
-        printf("Your turn, Player 2.\n");
+        printf("Your turn, Player 2. -> %c\n", game->Player2.Piece);
     }
 
-    printf("Put a piece on the table. Choose (X Y): ");
+    printf("Put a piece on the table. Write in this form -> (X Y): ");
     scanf("%hhu %hhu", &game->Position.X, &game->Position.Y);
 
-    if ( game->Position.X < 1 || game->Position.X > 3 || game->Position.Y < 1 || game->Position.Y > 3 ) {
+    if (game->Position.X < 1 || game->Position.X > 3 || game->Position.Y < 1 || game->Position.Y > 3) {
         printf("Position not allowed. Try again.\n");
         return;
     }
@@ -192,13 +203,12 @@ void insertPiece(struct Game *game) {
 }
 
 void initRound(struct Game *game) {
-    game->EndRound = false;
     cleanBoard(&game->Board);
-    
     printf("Loading game...\n");
     sleep(5);
-
+    game->SomeoneWon = false;
     game->Round++;
+    game->Moves = 0;
 }
 
 void getData(struct Player *player1, struct Player *player2) {
@@ -236,8 +246,10 @@ void cleanBoard(struct Board *board) {
     }
 }
 
-void printBoard(struct Board board) {
+void printBoard(struct Game game) {
     system("clear");
+    printf("|----------------------------|\n");
+    printf("|---------- Round %d ---------|\n", game.Round);
     printf("|----------------------------|\n");
     printf("|----- TIC-TAC-TOE GAME -----|\n");
     printf("|----------------------------|\n");
@@ -249,9 +261,9 @@ void printBoard(struct Board board) {
         printf("|         ");
         for (int8_t j=0; j<3; j++) {
             if (j == 3 - 1) {
-                printf(" %c", board.Board[i][j]);
+                printf(" %c", game.Board.Board[i][j]);
             } else{
-                printf(" %c |", board.Board[i][j]);
+                printf(" %c |", game.Board.Board[i][j]);
             }
         }
         printf("         |\n");
