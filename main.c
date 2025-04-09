@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <unistd.h>
-#include <string.h>
+#include <ctype.h>
 
 struct Board {
     char Board[3][3];
@@ -47,6 +47,8 @@ void initRound(struct Game *game);
 void insertPiece(struct Game *game);
 struct Player checkIfSomeoneWon(struct Game *game); 
 void printAndUpdateResult(struct Game *game, struct Player winner);
+void showPlayersStats(struct Game game);
+void showStatsAtEndGame(struct Game game);
 
 int main() {
     
@@ -99,12 +101,52 @@ int main() {
         scanf(" %c", &choice);
         if (choice == 'n') {
             game.EndGame = true;
-            printf("\nThanks for playing!\nQuitting game...");
+            printf("\nThanks for playing! Quitting game...\n\n");
             sleep(3);
         }
+
+        showStatsAtEndGame(game);
     }
 
     return 0;
+}
+
+void showStatsAtEndGame(struct Game game) {
+    system("clear");
+
+    printf("The game ends with:\n");
+    printf("%d Rounds | %d Wins | %d Loss | %d Ties |\n\n", 
+        game.Round, game.Wins, game.Loss, game.Ties);
+
+    printf("Most Winner: ");
+
+    if (game.Player1.Wins > game.Player2.Wins) {
+        printf("%s.\n\n", game.Player1.Name);
+    } else if (game.Player1.Wins < game.Player2.Wins) {
+        printf("%s.\n\n", game.Player2.Name);
+    } else {
+        printf("None! Both players won the same amount of rounds.\n\n");
+    }
+
+    showPlayersStats(game);
+}
+
+void showPlayersStats(struct Game game) {
+    struct Player players[2] = {game.Player1, game.Player2};
+
+    int sizeArrayPlayers = sizeof(players) / sizeof(struct Player);
+
+    printf("-------------------------\n");
+
+    for (int i = 0; i < 2; i++) {
+        printf("Player: %s\n", players[i].Name);
+        printf("Wins: %d\n", players[i].Wins);
+        printf("Loss: %d\n", players[i].Loss);
+        printf("\n");
+    }
+
+    printf("-------------------------\n");
+
 }
 
 void printAndUpdateResult(struct Game *game, struct Player winner) {
@@ -116,10 +158,12 @@ void printAndUpdateResult(struct Game *game, struct Player winner) {
         case 1:
             printf("\n%s won Round %d!", winner.Name, game->Round);
             game->Player1.Wins++;
+            game->Wins++;
             break;
         case 2:
             printf("\n%s won Round %d!", winner.Name, game->Round);
             game->Player2.Wins++;
+            game->Wins++;
             break;
     }            
 }
@@ -160,9 +204,13 @@ struct Player checkIfSomeoneWon(struct Game *game) {
         }
         if (player1Count == 3) {
             game->SomeoneWon = true;
+            game->IsPlayer1Turn = true;
+            game->IsPlayer2Turn = false;
             return game->Player1;
         } else if (player2Count == 3) {
             game->SomeoneWon = true;
+            game->IsPlayer1Turn = false;
+            game->IsPlayer2Turn = true;
             return game->Player2;
         }
     }
@@ -178,7 +226,13 @@ void insertPiece(struct Game *game) {
     }
 
     printf("Put a piece on the table. Write in this form -> (X Y): ");
-    scanf("%hhu %hhu", &game->Position.X, &game->Position.Y);
+    bool result = scanf("%hu %hu", &game->Position.X, &game->Position.Y);
+
+    while (result != 1 && isdigit(game->Position.X) && isdigit(game->Position.Y)) {
+        printf("Invalid input. Try again.\n");
+        printf("Put a piece on the table. Write in this form -> (X Y): ");
+        result = scanf("%hu %hu", &game->Position.X, &game->Position.Y);
+    }
 
     if (game->Position.X < 1 || game->Position.X > 3 || game->Position.Y < 1 || game->Position.Y > 3) {
         printf("Position not allowed. Try again.\n");
@@ -204,28 +258,44 @@ void insertPiece(struct Game *game) {
 
 void initRound(struct Game *game) {
     cleanBoard(&game->Board);
-    printf("Loading game...\n");
-    sleep(5);
     game->SomeoneWon = false;
     game->Round++;
     game->Moves = 0;
+    printf("Loading game...\n");
+    sleep(5);
 }
 
 void getData(struct Player *player1, struct Player *player2) {
     printf("Choose the players names.\n");
     printf("Player 1 name: ");
-    scanf("%19s", player1->Name);
+    bool result1 = scanf("%19s", player1->Name);
 
     printf("Player 2 name: ");
-    scanf("%19s", player2->Name);
+    bool result2 = scanf("%19s", player2->Name);
+
     printf("\n");
+
+    while (result1 != 1 && isalnum(player1->Name) && result2 != 1 && isalnum(player2->Name)) {
+        printf("Invalid input. Try again.\n");
+
+        printf("Choose the players names.\n");
+        printf("Player 1 name: ");
+        result1 = scanf("%19s", player1->Name);
+
+        printf("Player 2 name: ");
+        result2 = scanf("%19s", player2->Name);
+
+        printf("\n");
+    }
 
     printf("Choose the pieces to play.\n");
     printf("1 for 'X'\n2 for 'O'\n");
     printf("Player 1 piece: ");
 
     uint8_t option;
-    scanf("%hhu", &option);
+
+    bool resultInput = scanf("%hu", &option);
+
 
     if (option == 1) {
         player1->Piece = 'X';
