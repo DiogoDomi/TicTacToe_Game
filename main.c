@@ -5,6 +5,12 @@
 #include <unistd.h>
 #include <ctype.h>
 
+#ifdef WINDOWS
+#define CLEAR "cls"
+#else
+#define CLEAR "clear"
+#endif
+
 struct Board {
     char Board[3][3];
 };
@@ -40,10 +46,12 @@ struct Game {
     bool EndGame;
 };
 
-void printBoard(struct Game game);
+void printBoard(struct Game *game);
 void cleanBoard(struct Board *board); 
+void getValidName(char *name, const char *prompt); 
 void getData(struct Player *player1, struct Player *player2); 
 void initRound(struct Game *game);
+bool readPosition(uint8_t *x, uint8_t *y);
 void insertPiece(struct Game *game);
 struct Player checkIfSomeoneWon(struct Game *game); 
 void printAndUpdateResult(struct Game *game, struct Player winner);
@@ -89,7 +97,7 @@ int main() {
         initRound(&game);
 
         while (game.Moves < game.MAX_MOVES && !game.SomeoneWon) {
-            printBoard(game);
+            printBoard(&game);
             insertPiece(&game);
             winner = checkIfSomeoneWon(&game);
         }
@@ -103,16 +111,16 @@ int main() {
             game.EndGame = true;
             printf("\nThanks for playing! Quitting game...\n\n");
             sleep(3);
+            showStatsAtEndGame(game);
         }
 
-        showStatsAtEndGame(game);
     }
 
     return 0;
 }
 
 void showStatsAtEndGame(struct Game game) {
-    system("clear");
+    system(CLEAR);
 
     printf("The game ends with:\n");
     printf("%d Rounds | %d Wins | %d Loss | %d Ties |\n\n", 
@@ -186,7 +194,6 @@ struct Player checkIfSomeoneWon(struct Game *game) {
     uint8_t winningSequencesNum = 8;
     uint8_t sequencePositions = 3;
 
-
     for (uint8_t winningsequence = 0; winningsequence < winningSequencesNum; winningsequence++) {
         uint8_t player1Count = 0, player2Count= 0;
 
@@ -225,13 +232,8 @@ void insertPiece(struct Game *game) {
         printf("Your turn, Player 2. -> %c\n", game->Player2.Piece);
     }
 
-    printf("Put a piece on the table. Write in this form -> (X Y): ");
-    bool result = scanf("%hu %hu", &game->Position.X, &game->Position.Y);
-
-    while (result != 1 && isdigit(game->Position.X) && isdigit(game->Position.Y)) {
-        printf("Invalid input. Try again.\n");
-        printf("Put a piece on the table. Write in this form -> (X Y): ");
-        result = scanf("%hu %hu", &game->Position.X, &game->Position.Y);
+    if (!readPosition(&game->Position.X, &game->Position.Y)) {
+        printf("Invalid input. Please enter two numbers between 1 and 3.\n");
     }
 
     if (game->Position.X < 1 || game->Position.X > 3 || game->Position.Y < 1 || game->Position.Y > 3) {
@@ -256,56 +258,76 @@ void insertPiece(struct Game *game) {
     game->Moves++;
 }
 
+bool readPosition(uint8_t *x, uint8_t *y) {
+    printf("Put a piece on the table. Write in this form -> (Row Column): ");
+
+    if(scanf("%hhu %hhu", x, y) != 2) {
+        while (getchar() != '\n');
+        return false;
+    }
+    return true;
+}
+
 void initRound(struct Game *game) {
-    cleanBoard(&game->Board);
     game->SomeoneWon = false;
     game->Round++;
     game->Moves = 0;
+    cleanBoard(&game->Board);
     printf("Loading game...\n");
     sleep(5);
 }
 
 void getData(struct Player *player1, struct Player *player2) {
-    printf("Choose the players names.\n");
-    printf("Player 1 name: ");
-    bool result1 = scanf("%19s", player1->Name);
-
-    printf("Player 2 name: ");
-    bool result2 = scanf("%19s", player2->Name);
+    system(CLEAR);
+    
+    getValidName(player1->Name, "Player 1 name: ");
+    getValidName(player2->Name, "Player 2 name: ");
 
     printf("\n");
-
-    while (result1 != 1 && isalnum(player1->Name) && result2 != 1 && isalnum(player2->Name)) {
-        printf("Invalid input. Try again.\n");
-
-        printf("Choose the players names.\n");
-        printf("Player 1 name: ");
-        result1 = scanf("%19s", player1->Name);
-
-        printf("Player 2 name: ");
-        result2 = scanf("%19s", player2->Name);
-
-        printf("\n");
-    }
-
-    printf("Choose the pieces to play.\n");
-    printf("1 for 'X'\n2 for 'O'\n");
-    printf("Player 1 piece: ");
 
     uint8_t option;
 
-    bool resultInput = scanf("%hu", &option);
+    while (true) {
+        printf("Choose the pieces to play.\n");
+        printf("1 for 'X'\n2 for 'O'\n");
+        printf("Player 1 piece: ");
 
+        if(scanf("%hhu", &option) != 1) {
+            while(getchar() != '\n');
+            printf("Invalid input. Please enter 1 or 2.\n");
+            continue;
+        }
 
-    if (option == 1) {
-        player1->Piece = 'X';
-        player2->Piece = 'O';
-    } else {
-        player1->Piece = 'O';
-        player2->Piece = 'X';
+        if (option == 1 || option == 2) {
+            break;
+        }
+        printf("Invalid option. Choose 1 or 2 only.\n\n");
     }
+
+    player1->Piece = (option == 1) ? 'X' : 'O';
+    player2->Piece = (option == 1) ? 'O' : 'X';
+
     printf("\n");
     printf("The data is saved.\n");
+}
+
+void getValidName(char *name, const char *prompt) {
+    while (true) {
+        printf("%s", prompt);
+        scanf("%19s", name);
+
+        bool isValid = true;
+        for (int i = 0; name[i] != '\0'; i++) {
+            if (!isalnum(name[i])) {
+                isValid = false;
+                break;
+            }
+        }
+
+        if (isValid) break;
+
+        printf("Invalid name. Use only letters and numbers (max 19 characters).\n\n");
+    }
 }
 
 void cleanBoard(struct Board *board) {
@@ -316,10 +338,10 @@ void cleanBoard(struct Board *board) {
     }
 }
 
-void printBoard(struct Game game) {
-    system("clear");
+void printBoard(struct Game *game) {
+    system(CLEAR);
     printf("|----------------------------|\n");
-    printf("|---------- Round %d ---------|\n", game.Round);
+    printf("|---------- Round %d ---------|\n", game->Round);
     printf("|----------------------------|\n");
     printf("|----- TIC-TAC-TOE GAME -----|\n");
     printf("|----------------------------|\n");
@@ -331,9 +353,9 @@ void printBoard(struct Game game) {
         printf("|         ");
         for (int8_t j=0; j<3; j++) {
             if (j == 3 - 1) {
-                printf(" %c", game.Board.Board[i][j]);
+                printf(" %c", game->Board.Board[i][j]);
             } else{
-                printf(" %c |", game.Board.Board[i][j]);
+                printf(" %c |", game->Board.Board[i][j]);
             }
         }
         printf("         |\n");
