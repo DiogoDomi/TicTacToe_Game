@@ -41,7 +41,6 @@ struct Game {
     uint8_t MAX_MOVES;
 
     bool IsPlayer1Turn;
-    bool IsPlayer2Turn;
     bool SomeoneWon;
     bool EndGame;
 };
@@ -83,7 +82,6 @@ int main() {
         .Loss = 0,
         .MAX_MOVES = 9,
         .IsPlayer1Turn = true,
-        .IsPlayer2Turn = false,
         .SomeoneWon = false,
         .EndGame = false
     };
@@ -212,12 +210,10 @@ struct Player checkIfSomeoneWon(struct Game *game) {
         if (player1Count == 3) {
             game->SomeoneWon = true;
             game->IsPlayer1Turn = true;
-            game->IsPlayer2Turn = false;
             return game->Player1;
         } else if (player2Count == 3) {
             game->SomeoneWon = true;
             game->IsPlayer1Turn = false;
-            game->IsPlayer2Turn = true;
             return game->Player2;
         }
     }
@@ -248,11 +244,9 @@ void insertPiece(struct Game *game) {
     if (game->IsPlayer1Turn) {
         game->Board.Board[game->Position.X - 1][game->Position.Y - 1] = game->Player1.Piece;
         game->IsPlayer1Turn = false;
-        game->IsPlayer2Turn = true;
     } else {
         game->Board.Board[game->Position.X - 1][game->Position.Y - 1] = game->Player2.Piece;
         game->IsPlayer1Turn = true;
-        game->IsPlayer2Turn = false;
     }
 
     game->Moves++;

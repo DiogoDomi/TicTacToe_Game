@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/diogo/Documents/Estudos/Estudos_Em_C/TicTacToe/build",
+  "command": "/usr/bin/gcc   -g -o CMakeFiles/TicTacToeGame.dir/main.c.o -c /home/diogo/Documents/Estudos/Estudos_Em_C/TicTacToe/main.c",
+  "file": "/home/diogo/Documents/Estudos/Estudos_Em_C/TicTacToe/main.c",
+  "output": "CMakeFiles/TicTacToeGame.dir/main.c.o"
+}
+]
