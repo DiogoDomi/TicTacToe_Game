@@ -5,11 +5,10 @@ The game was written in pure C programming.
 
 In this game i used the concepts of structs, pointers, references, functions and others logical thinking to make the game.
 
+![TicTacToe-Pic1](https://github.com/user-attachments/assets/44bc3e2a-2451-48c7-b692-6adb699455c3)
 
-![TicTacToe-Pic1](https://github.com/user-attachments/assets/afc2ea1a-b6e5-49f2-b53b-5d31e0fa184a)
+![TicTacToe-Pic2](https://github.com/user-attachments/assets/16dbeb3e-0e2a-404b-9812-ff06002bff57)
 
-![TicTacToe-Pic2](https://github.com/user-attachments/assets/52473de4-6955-4ce1-9237-34af56400adc)
+![TicTacToe-Pic3](https://github.com/user-attachments/assets/2cc02dea-1fa6-4cf7-8f86-e024a53d8dd3)
 
-![TicTacToe-Pic3](https://github.com/user-attachments/assets/fceb1f98-2abd-4fa7-873d-466c97ed8f02)
-
-![TicTacToe-Pic4](https://github.com/user-attachments/assets/49b72593-6f1d-403e-8f71-ed07786738c3)
+![TicTacToe-Pic4](https://github.com/user-attachments/assets/4a849c43-6ef6-4541-8d7e-a54cd3286732)
